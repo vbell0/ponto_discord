@@ -1,0 +1,21 @@
+{
+  "name": "ponto-rp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bot de ponto (Discord) + dashboard web para servidores GTA RP",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "dev:db": "docker compose up -d postgres adminer",
+    "db:generate": "npm run generate --workspace @ponto/database",
+    "db:migrate": "npm run migrate --workspace @ponto/database",
+    "db:deploy": "npm run migrate:deploy --workspace @ponto/database",
+    "db:studio": "npm run studio --workspace @ponto/database",
+    "dev:bot": "npm run dev --workspace @ponto/bot"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

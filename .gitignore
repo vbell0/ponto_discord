@@ -1,0 +1,32 @@
+# Dependências
+node_modules/
+.pnpm-store/
+
+# Builds
+dist/
+.next/
+out/
+
+# Ambiente local (segredos)
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Prisma (gerado)
+packages/database/prisma/generated/
+
+# Arquivos temporários de backup (não persistem em disco)
+/tmp/guild_*.dump*
+*.dump
+*.dump.gz
+
+# SO
+.DS_Store
+
+# Editores
+.vscode/
+.idea/

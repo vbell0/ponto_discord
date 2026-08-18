@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(pnpm --version)",
+      "Bash(docker --version)",
+      "Bash(docker compose *)",
+      "Bash(git --version)",
+      "Bash(npm install *)",
+      "Bash(node_modules/esbuild/bin/esbuild --version)",
+      "Bash(npm config *)",
+      "Bash(npm run *)",
+      "Bash(npx prisma *)",
+      "Bash(npx tsc *)",
+      "Bash(npx tsx *)"
+    ]
+  }
+}

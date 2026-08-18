@@ -1,0 +1,130 @@
+// Schema Prisma — Fase 0 (modelo inicial).
+// Veja PLANO_BOT_PONTO.md, seção 3.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Guild {
+  id                     String   @id // discord guild id
+  name                   String
+  orgName                String   @default("Ponto") // whitelabel: "Departamento de Polícia", "Corpo de Bombeiros", "Lanchonete do Zé"...
+  embedColor             String   @default("#5865F2")
+  painelChannelId        String?
+  top10ChannelId         String?
+  abertosChannelId       String?
+  backupChannelId        String?
+  painelMessageId        String? // id da msg do painel (sobrevive a restart p/ editar)
+  top10MessageId         String? // id da msg do ranking (Fase 4)
+  abertosMessageId       String? // id da msg de pontos abertos (Fase 4)
+  allowedVoiceChannelIds String[] @default([])
+  autoCloseSeconds       Int      @default(60)
+  rankingPeriod          RankingPeriod @default(SEMANA) // período do ranking do #top-10
+  backupEnabled          Boolean  @default(true) // feature toggle — liga/desliga o backup automático de 1 em 1h
+  members                Member[]
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+model Member {
+  id          String         @id @default(cuid())
+  discordId   String
+  guildId     String
+  guild       Guild          @relation(fields: [guildId], references: [id])
+  displayName String
+  sessions    PontoSession[]
+
+  @@unique([discordId, guildId])
+}
+
+model PontoSession {
+  id           String       @id @default(cuid())
+  memberId     String
+  member       Member       @relation(fields: [memberId], references: [id])
+  startedAt    DateTime     @default(now())
+  endedAt      DateTime?
+  status       PontoStatus  @default(ABERTO)
+  closedReason ClosedReason?
+  totalSeconds Int? // calculado no fechamento (descontando pausas)
+  events       PontoEvent[]
+
+  @@index([memberId])
+  @@index([status])
+}
+
+model PontoEvent {
+  id        String         @id @default(cuid())
+  sessionId String
+  session   PontoSession   @relation(fields: [sessionId], references: [id])
+  type      PontoEventType
+  createdAt DateTime       @default(now())
+
+  @@index([sessionId])
+}
+
+model BackupLog {
+  id               String   @id @default(cuid())
+  guildId          String
+  fileName         String
+  sizeBytes        Int
+  success          Boolean
+  errorMsg         String?
+  discordMessageId String? // mensagem no canal #backups onde o dump foi anexado
+  discordChannelId String?
+  createdAt        DateTime @default(now())
+
+  @@index([guildId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  guildId   String
+  actorId   String // discord id de quem fez a ação (bot/admin)
+  action    String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([guildId])
+}
+
+model VoiceWatch {
+  id           String   @id @default(cuid())
+  guildId      String
+  memberId     String
+  sessionId    String
+  deadline     DateTime // now + autoCloseSeconds
+  resolved     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@index([deadline])
+  @@index([sessionId])
+}
+
+enum PontoStatus {
+  ABERTO
+  PAUSADO
+  FECHADO
+}
+
+enum ClosedReason {
+  MANUAL
+  SAIU_DA_VOZ
+  ADMIN
+}
+
+enum PontoEventType {
+  INICIO
+  PAUSA
+  RETOMADA
+  FIM
+}
+
+enum RankingPeriod {
+  SEMANA
+  MES
+}

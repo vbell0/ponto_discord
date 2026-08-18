@@ -1,0 +1,31 @@
+# Caddyfile — produção (Oracle Cloud VM)
+# Substitua 'seu.dominio.com' pelo seu domínio real.
+{
+	admin off
+	email seu-email@exemplo.com  # para Let's Encrypt (obrigatório)
+}
+
+seu.dominio.com {
+	# Dashboard web (Next.js)
+	reverse_proxy web:3000
+
+	# Headers de segurança
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+
+	# Logs
+	log {
+		output stdout
+		format json
+	}
+}
+
+# Health check (opcional, para uptime monitoring)
+(seu.dominio.com) {
+	@health path /api/health
+	respond @health "ok" 200
+}

@@ -1,0 +1,35 @@
+# docker-compose para Fase 0: Postgres + Adminer.
+# (bot / web / caddy serão adicionados nas fases seguintes.)
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: ponto_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-ponto}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ponto}
+      POSTGRES_DB: ${POSTGRES_DB:-ponto}
+    ports:
+      # Expõe na VM/host para rodar prisma/migrações localmente.
+      # Serviços do compose (bot/web) usarão o host interno "postgres".
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ponto}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer:4
+    container_name: ponto_adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
